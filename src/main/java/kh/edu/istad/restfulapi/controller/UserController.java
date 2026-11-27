@@ -21,10 +21,12 @@ public class UserController {
     public void deleteById(@PathVariable UUID id) {
         userService.deleteById(id);
     }
-    @ResponseStatus(HttpStatus.CREATED) // customize response status code
+
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public UserResponse create(@RequestBody UserCreateRequest userCreateRequest) {
-        return userService.create(userCreateRequest);
+    public UserResponse create(
+            @RequestBody UserCreateRequest request) {
+        return userService.create(request);
     }
 
     @GetMapping
@@ -32,6 +34,8 @@ public class UserController {
         return userService.getAll();
     }
 
+    @GetMapping("/{id}")
+    public UserResponse getById(@PathVariable UUID id) {
+        return userService.getById(id);
+    }
 }
-
-

@@ -18,34 +18,56 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
-
     @Override
     public void deleteById(UUID id) {
-        // validate user ID
-        if (!userRepository.checkById(id)) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "User not found!"
-            );
-        }
 
-        userRepository.deleteOne(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "User not found"
+                ));
+
+        userRepository.delete(user);
     }
 
     @Override
-    public UserResponse create(UserCreateRequest userCreateRequest) {
+    public UserResponse create(UserCreateRequest request) {
 
         User user = new User();
-        user.setUsername(userCreateRequest.username());
-        user.setPassword(userCreateRequest.password());
-        user.setFullName(userCreateRequest.fullName());
 
-        user.setId(UUID.randomUUID());
+        user.setUsername(request.username());
+        user.setPassword(request.password());
+        user.setFullName(request.fullName());
         user.setIsActive(true);
 
-        // TODO: write your business logic here
+        User savedUser = userRepository.save(user);
 
-        userRepository.insertOne(user);
+        return new UserResponse(
+                savedUser.getId(),
+                savedUser.getFullName(),
+                savedUser.getIsActive()
+        );
+    }
+
+    @Override
+    public List<UserResponse> getAll() {
+
+        return userRepository.findAll()
+                .stream()
+                .map(user -> new UserResponse(
+                        user.getId(),
+                        user.getFullName(),
+                        user.getIsActive()
+                ))
+                .toList();
+    }
+
+    @Override
+    public UserResponse getById(UUID id) {
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "User not found"
+                ));
 
         return new UserResponse(
                 user.getId(),
@@ -53,20 +75,4 @@ public class UserServiceImpl implements UserService {
                 user.getIsActive()
         );
     }
-
-    @Override
-    public List<UserResponse> getAll() {
-        return userRepository.selectAll()
-                .stream()
-                .map(user -> new UserResponse(user.getId(),
-                        user.getFullName(),
-                        user.getIsActive()))
-                .toList();
-    }
-
-    @Override
-    public User getById(UUID id) {
-        return null;
-    }
-
 }
